@@ -1,0 +1,1 @@
+"""Checkout abandonment detection logic."""

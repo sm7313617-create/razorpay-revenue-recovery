@@ -1,0 +1,1 @@
+"""Payment failure detection logic."""
