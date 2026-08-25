@@ -1,0 +1,21 @@
+{
+  // ── Python interpreter ──────────────────────────────────────────
+  // Points VS Code / Pylance to the project venv so all installed
+  // packages (sqlalchemy, faker, psycopg2-binary, etc.) are resolved.
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/Scripts/python.exe",
+
+  // ── Pylance / Pyright type-checking ────────────────────────────
+  "python.analysis.typeCheckingMode": "basic",
+
+  // Tell Pylance where the venv lives so it picks up py.typed stubs
+  // from every installed package (including SQLAlchemy 2.0).
+  "python.analysis.venvPath": "${workspaceFolder}",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}"
+  ],
+
+  // ── File associations ───────────────────────────────────────────
+  "files.associations": {
+    "*.env": "dotenv"
+  }
+}
