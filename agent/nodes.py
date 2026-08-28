@@ -218,7 +218,22 @@ def decide_intervention(state: AgentState) -> AgentState:
             )
 
         response = llm.invoke(prompt)
-        decision = response.content.strip().lower()
+
+        # gemini-3.6-flash returns content as a list of part-dicts:
+        # [{'type': 'text', 'text': 'retry', 'extras': {...}}]
+        # Older models return a plain str.  Handle both shapes robustly.
+        raw_content = response.content
+        if isinstance(raw_content, list):
+            # Extract 'text' from the first text-type part
+            text_parts = [
+                p["text"] for p in raw_content
+                if isinstance(p, dict) and p.get("type") == "text"
+            ]
+            raw_text = text_parts[0] if text_parts else str(raw_content)
+        else:
+            raw_text = str(raw_content)
+
+        decision = raw_text.strip().lower()
 
         return {**state, "agent_decision": decision}
 
