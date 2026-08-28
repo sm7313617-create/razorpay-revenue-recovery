@@ -330,7 +330,13 @@ def prepare_action(state: AgentState) -> AgentState:
             "requires_human": True,
         }
 
-    return {**state, "action_params": params}
+    # If the final decision is "escalate" (whether set by check_stopping_rules,
+    # Gemini, or the error fallback), ensure the escalated flag is True.
+    # check_stopping_rules already sets it for its own escalation paths; this
+    # covers the case where decide_intervention returns "escalate".
+    escalated = state["escalated"] or (decision == "escalate")
+
+    return {**state, "action_params": params, "escalated": escalated}
 
 
 # ---------------------------------------------------------------------------
