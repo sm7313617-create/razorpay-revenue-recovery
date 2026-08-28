@@ -11,7 +11,8 @@ Entry
         └─► (else) decide_intervention ──► prepare_action
                                               └─► log_audit_entry
                                                     └─► write_recovery_action
-                                                          └─► END
+                                                          └─► execute_intervention
+                                                                └─► END
 
 Public API
 ----------
@@ -31,7 +32,7 @@ from typing import Any
 from dotenv import load_dotenv
 from langgraph.graph import END, StateGraph
 from sqlalchemy import create_engine, func, select
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from agent.nodes import (
     AgentState,
@@ -42,12 +43,100 @@ from agent.nodes import (
     write_recovery_action,
 )
 from db.models import RecoveryAction
+from interventions.escalate import execute_escalate
+from interventions.notify import execute_notify
+from interventions.retry import execute_retry
 
 # ---------------------------------------------------------------------------
 # Load environment once at module import time
 # ---------------------------------------------------------------------------
 
 load_dotenv()
+
+
+# ---------------------------------------------------------------------------
+# Helper -- count prior recovery attempts
+# ---------------------------------------------------------------------------
+
+
+def _count_attempts(reference_id: str) -> int:
+    """Return the number of existing RecoveryAction rows for *reference_id*.
+
+    Creates a fresh engine + session per call so no global connection state
+    is retained between runs.
+
+    Args:
+        reference_id: String representation of the UUID.
+
+    Returns:
+        Integer count (0 if none found or reference_id is invalid).
+    """
+    try:
+        ref_uuid = uuid.UUID(reference_id)
+    except (ValueError, AttributeError):
+        return 0
+
+    db_url = os.environ["DB_URL"]
+    engine = create_engine(db_url, echo=False, future=True)
+    SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+    try:
+        with SessionLocal() as session:
+            stmt = select(func.count()).where(
+                RecoveryAction.reference_id == ref_uuid
+            )
+            count: int = session.scalar(stmt) or 0
+    finally:
+        engine.dispose()
+
+    return count
+
+
+# ---------------------------------------------------------------------------
+# execute_intervention node
+# ---------------------------------------------------------------------------
+
+
+def _execute_intervention_node(state: AgentState) -> AgentState:
+    """Final graph node -- route to the correct intervention executor.
+
+    Creates a fresh SQLAlchemy session (and disposes the engine after the
+    executor returns) so that the intervention has a clean transaction
+    boundary while still living within one logical operation.
+
+    Routing table
+    -------------
+    retry                  -> execute_retry
+    notify / notify_only   -> execute_notify
+    notify_then_escalate   -> execute_notify  (handles escalation internally)
+    discount               -> execute_notify  (treated as a notification)
+    escalate (or unknown)  -> execute_escalate
+
+    Args:
+        state: Current AgentState after write_recovery_action.
+
+    Returns:
+        Updated AgentState with outcome, escalated, and error_detail set
+        by the chosen executor.
+    """
+    decision: str = state.get("agent_decision", "escalate")
+
+    db_url: str = os.environ["DB_URL"]
+    engine = create_engine(db_url, echo=False, future=True)
+    SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+    try:
+        with SessionLocal() as session:  # type: Session
+            if decision == "retry":
+                final_state: dict = execute_retry(state, session)
+            elif decision in ("notify", "notify_only", "notify_then_escalate", "discount"):
+                final_state = execute_notify(state, session)
+            else:  # "escalate" or any unrecognised value
+                final_state = execute_escalate(state, session)
+    finally:
+        engine.dispose()
+
+    return final_state  # type: ignore[return-value]
 
 
 # ---------------------------------------------------------------------------
@@ -98,51 +187,15 @@ def _build_graph() -> Any:
     graph.add_edge("decide_intervention", "prepare_action")
     graph.add_edge("prepare_action", "log_audit_entry")
     graph.add_edge("log_audit_entry", "write_recovery_action")
-    graph.add_edge("write_recovery_action", END)
+    graph.add_edge("write_recovery_action", "execute_intervention")
+    graph.add_node("execute_intervention", _execute_intervention_node)
+    graph.add_edge("execute_intervention", END)
 
     return graph.compile()
 
 
-# Compile once — the compiled graph is stateless and safe to reuse
+# Compile once -- the compiled graph is stateless and safe to reuse
 _COMPILED_GRAPH = _build_graph()
-
-
-# ---------------------------------------------------------------------------
-# Helper — count prior recovery attempts
-# ---------------------------------------------------------------------------
-
-
-def _count_attempts(reference_id: str) -> int:
-    """Return the number of existing RecoveryAction rows for *reference_id*.
-
-    Creates a fresh engine + session per call so no global connection state
-    is retained between runs.
-
-    Args:
-        reference_id: String representation of the UUID.
-
-    Returns:
-        Integer count (0 if none found or reference_id is invalid).
-    """
-    try:
-        ref_uuid = uuid.UUID(reference_id)
-    except (ValueError, AttributeError):
-        return 0
-
-    db_url = os.environ["DB_URL"]
-    engine = create_engine(db_url, echo=False, future=True)
-    SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
-
-    try:
-        with SessionLocal() as session:
-            stmt = select(func.count()).where(
-                RecoveryAction.reference_id == ref_uuid
-            )
-            count: int = session.scalar(stmt) or 0
-    finally:
-        engine.dispose()
-
-    return count
 
 
 # ---------------------------------------------------------------------------
