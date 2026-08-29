@@ -1,10 +1,24 @@
-﻿"""
+"""
 integration_test_task5.py
 ----------------------------------------------------------------
 Integration test for Task 5 -- Intervention Executors.
 
 Fetches up to 5 real detected payment failures from the DB,
 runs run_batch on them, and prints an outcome distribution table.
+
+!! DB-MUTATING SCRIPT — READ BEFORE RUNNING !!
+-----------------------------------------------
+This script executes the full live agent pipeline against the real
+PostgreSQL database.  Every run inserts rows into:
+  - recovery_actions  (one row per event processed)
+  - audit_log         (one row per event processed)
+  - payments          (may UPDATE status to 'success' when retry succeeds)
+
+Running this script during metrics collection or before a demo will
+inflate recovery_actions / audit_log counts and distort all reports.
+
+To restore a clean seed state, run:
+    python -m data.reset_db
 """
 
 import os
