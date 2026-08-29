@@ -197,7 +197,7 @@ def decide_intervention(state: AgentState) -> AgentState:
     event_data = state["event_data"]
 
     try:
-        llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash")
+        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash-lite")
 
         if event_type == "payment_failure":
             prompt = PAYMENT_FAILURE_PROMPT.format(
@@ -219,7 +219,7 @@ def decide_intervention(state: AgentState) -> AgentState:
 
         response = llm.invoke(prompt)
 
-        # gemini-3.6-flash returns content as a list of part-dicts:
+        # gemini-3.5-flash-lite returns content as a list of part-dicts:
         # [{'type': 'text', 'text': 'retry', 'extras': {...}}]
         # Older models return a plain str.  Handle both shapes robustly.
         raw_content = response.content
