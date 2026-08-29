@@ -38,9 +38,14 @@ from db.models import CheckoutSession, Payment  # noqa: E402
 # ----------------------------------------------------------------
 # Reproducibility
 # ----------------------------------------------------------------
-random.seed(42)
+def reset_seed(seed: int = 42) -> None:
+    """Reset RNG seeds for exact reproducibility across runs."""
+    random.seed(seed)
+    fake.seed_instance(seed)
+
+
 fake = Faker("en_IN")
-fake.seed_instance(42)
+reset_seed(42)
 
 # ----------------------------------------------------------------
 # Constants
@@ -74,6 +79,11 @@ WINDOW_DAYS = 30
 # ----------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------
+
+def _seeded_uuid() -> uuid.UUID:
+    """Generate a deterministic RFC 4122 v4 UUID using Python's seeded random generator."""
+    return uuid.UUID(int=random.getrandbits(128), version=4)
+
 
 def _random_past_dt(days: int = WINDOW_DAYS) -> datetime:
     """Return a random timezone-aware datetime within the last *days* days."""
@@ -119,7 +129,7 @@ def seed_payments(session) -> list[Payment]:
     for fc in failure_codes:
         created = _random_past_dt()
         p = Payment(
-            id=uuid.uuid4(),
+            id=_seeded_uuid(),
             merchant_id=_merchant_id(),
             customer_id=_customer_id(),
             amount=_amount(),
@@ -135,7 +145,7 @@ def seed_payments(session) -> list[Payment]:
     for _ in range(TOTAL_SUCCESS):
         created = _random_past_dt()
         p = Payment(
-            id=uuid.uuid4(),
+            id=_seeded_uuid(),
             merchant_id=_merchant_id(),
             customer_id=_customer_id(),
             amount=_amount(),
@@ -166,7 +176,7 @@ def seed_checkout_sessions(session) -> list[CheckoutSession]:
         created = _random_past_dt()
         abandon_offset = timedelta(minutes=random.randint(15, 90))
         cs = CheckoutSession(
-            id=uuid.uuid4(),
+            id=_seeded_uuid(),
             merchant_id=_merchant_id(),
             customer_id=_customer_id(),
             cart_value=round(random.uniform(CART_MIN, CART_MAX), 2),
@@ -180,7 +190,7 @@ def seed_checkout_sessions(session) -> list[CheckoutSession]:
     for _ in range(TOTAL_COMPLETED):
         created = _random_past_dt()
         cs = CheckoutSession(
-            id=uuid.uuid4(),
+            id=_seeded_uuid(),
             merchant_id=_merchant_id(),
             customer_id=_customer_id(),
             cart_value=round(random.uniform(CART_MIN, CART_MAX), 2),

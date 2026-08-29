@@ -31,7 +31,7 @@ from sqlalchemy import create_engine, text
 # Allow running as a script from the project root
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data.seed_data import seed_checkout_sessions, seed_payments  # noqa: E402
+from data.seed_data import reset_seed, seed_checkout_sessions, seed_payments  # noqa: E402
 
 
 def reset_and_reseed(db_url: str) -> None:
@@ -65,6 +65,7 @@ def reset_and_reseed(db_url: str) -> None:
 
     with SessionFactory() as session:
         print("  Re-seeding payments and checkout_sessions ...")
+        reset_seed(42)
 
         payments = seed_payments(session)
         session.flush()
