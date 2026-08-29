@@ -65,7 +65,7 @@ def reset_and_reseed(db_url: str) -> None:
 
     with SessionFactory() as session:
         print("  Re-seeding payments and checkout_sessions ...")
-        reset_seed(42)
+        reset_seed()
 
         payments = seed_payments(session)
         session.flush()

@@ -3,22 +3,22 @@
     "total_events_processed": 57,
     "total_payment_failures_processed": 35,
     "total_checkout_abandonments_processed": 22,
-    "run_timestamp": "2026-08-29T12:30:42.488024+00:00"
+    "run_timestamp": "2026-08-29T12:38:51.072043+00:00"
   },
   "recovery_outcomes": {
-    "recovered_count": 57,
-    "failed_count": 0,
+    "recovered_count": 55,
+    "failed_count": 2,
     "escalated_count": 0,
     "pending_count": 0,
-    "recovery_rate_pct": 100.0
+    "recovery_rate_pct": 96.5
   },
   "financial_impact": {
-    "total_amount_at_risk": 927123.59,
-    "amount_recovered": 251351.04,
-    "amount_still_at_risk": 675772.55,
-    "recovery_value_pct": 27.1,
-    "cart_value_at_risk": 187161.59,
-    "cart_value_engaged": 187161.59
+    "total_amount_at_risk": 884480.75,
+    "amount_recovered": 183559.91,
+    "amount_still_at_risk": 700920.84,
+    "recovery_value_pct": 20.8,
+    "cart_value_at_risk": 192603.85,
+    "cart_value_engaged": 192603.85
   },
   "by_failure_code": [
     {
@@ -38,9 +38,9 @@
     {
       "failure_code": "gateway_timeout",
       "processed": 8,
-      "recovered": 8,
+      "recovered": 6,
       "escalated": 0,
-      "recovery_rate_pct": 100.0
+      "recovery_rate_pct": 75.0
     },
     {
       "failure_code": "bank_downtime",
@@ -54,8 +54,8 @@
     {
       "action_taken": "retry",
       "count_used": 8,
-      "success_count": 8,
-      "failure_count": 0
+      "success_count": 6,
+      "failure_count": 2
     },
     {
       "action_taken": "notify",
@@ -84,46 +84,46 @@
   },
   "exceptions": [
     {
-      "reference_id": "ae270da7-02f0-4b90-b143-262fdc5c0eed",
+      "reference_id": "44ef7feb-e8e5-4461-b589-a82b5a702cfa",
       "event_type": "payment_failure",
       "decision_made": "notify_then_escalate",
       "error_detail": null,
-      "timestamp": "2026-08-29T18:00:25.241031+05:30"
+      "timestamp": "2026-08-29T18:08:32.522586+05:30"
     },
     {
-      "reference_id": "11ce5dd2-b45e-41f0-b139-d32c93cd59bf",
+      "reference_id": "b62ac1fe-a5f0-4e63-85dd-b87da81aa40a",
       "event_type": "payment_failure",
       "decision_made": "notify_then_escalate",
       "error_detail": null,
-      "timestamp": "2026-08-29T18:00:25.006699+05:30"
+      "timestamp": "2026-08-29T18:08:23.506916+05:30"
     },
     {
-      "reference_id": "ff5e9ff0-ff50-4de4-b825-67b85cabcc97",
+      "reference_id": "62397bc7-0176-4741-bab9-f87ff5059285",
       "event_type": "payment_failure",
       "decision_made": "notify_then_escalate",
       "error_detail": null,
-      "timestamp": "2026-08-29T17:59:31.968062+05:30"
+      "timestamp": "2026-08-29T18:08:16.988225+05:30"
     },
     {
-      "reference_id": "a8e56e0c-20de-435d-a031-d750c40db9b4",
+      "reference_id": "f06d3fef-7019-46a0-8381-e88f38c0c8fd",
       "event_type": "payment_failure",
       "decision_made": "notify_then_escalate",
       "error_detail": null,
-      "timestamp": "2026-08-29T17:59:13.285912+05:30"
+      "timestamp": "2026-08-29T18:07:48.525841+05:30"
     },
     {
-      "reference_id": "d777a477-4c66-40a8-a013-ac6ededa4e16",
+      "reference_id": "5dfbd3d1-2c4a-4698-aa2c-a1af6a107b75",
       "event_type": "payment_failure",
       "decision_made": "notify_then_escalate",
       "error_detail": null,
-      "timestamp": "2026-08-29T17:47:56.344344+05:30"
+      "timestamp": "2026-08-29T18:07:24.388534+05:30"
     }
   ],
   "baseline_comparison": {
-    "baseline_recovery_count": 46,
-    "baseline_recovery_rate_pct": 80.7,
-    "agent_recovery_count": 57,
-    "agent_recovery_rate_pct": 100.0,
-    "improvement_pct": 19.3
+    "baseline_recovery_count": 41,
+    "baseline_recovery_rate_pct": 71.9,
+    "agent_recovery_count": 55,
+    "agent_recovery_rate_pct": 96.5,
+    "improvement_pct": 24.6
   }
 }
