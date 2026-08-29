@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import os
 import uuid
-from typing import Any
+from typing import Any, cast
 
 from dotenv import load_dotenv
 from langgraph.graph import END, StateGraph
@@ -126,17 +126,18 @@ def _execute_intervention_node(state: AgentState) -> AgentState:
     SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
     try:
-        with SessionLocal() as session:  # type: Session
+        with SessionLocal() as session:
+            state_dict = dict(state)
             if decision == "retry":
-                final_state: dict = execute_retry(state, session)
+                final_state = execute_retry(state_dict, session)
             elif decision in ("notify", "notify_only", "notify_then_escalate", "discount"):
-                final_state = execute_notify(state, session)
+                final_state = execute_notify(state_dict, session)
             else:  # "escalate" or any unrecognised value
-                final_state = execute_escalate(state, session)
+                final_state = execute_escalate(state_dict, session)
     finally:
         engine.dispose()
 
-    return final_state  # type: ignore[return-value]
+    return cast(AgentState, final_state)
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +156,7 @@ def _build_graph() -> Any:
     Returns:
         A compiled LangGraph runnable (CompiledGraph).
     """
-    graph = StateGraph(AgentState)
+    graph = StateGraph(cast(Any, AgentState))
 
     # Register every node
     graph.add_node("check_stopping_rules", check_stopping_rules)
