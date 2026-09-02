@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💳 Razorpay AI Revenue Recovery
+# Razorpay AI Revenue Recovery
 
 <p align="center">
   <strong>Autonomous financial agent that detects payment failures and abandoned checkouts, executing bounded recovery actions through deterministic policy gates and Gemini intelligence.</strong>
@@ -18,7 +18,7 @@
 
 </div>
 
-## 📌 What It Does
+## What It Does
 
 When a payment fails or a customer abandons their cart, money is left on the table. This system automatically detects those events from your database, reasons about the best recovery strategy for each one, and acts — all without human intervention for routine cases. For edge cases like bank outages or repeat failures, it escalates to a human queue instead of retrying blindly.
 
@@ -26,7 +26,7 @@ A set of deterministic rules handles the clear-cut cases (too many retries, bank
 
 ---
 
-## 📊 Key Results
+## Key Results
 
 > **Benchmark context:** Evaluated on 57 production-grade synthetic events generated with deterministic seed `DEFAULT_SEED=1`.
 
@@ -43,7 +43,7 @@ A set of deterministic rules handles the clear-cut cases (too many retries, bank
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 The pipeline is a [LangGraph](https://github.com/langchain-ai/langgraph) `StateGraph` with five nodes: a deterministic policy gate runs first, then (optionally) a Gemini LLM call, then action preparation, audit logging, DB persistence, and finally execution of the chosen intervention. The system runs on PostgreSQL 18 with SQLAlchemy 2.0 and exposes a live Streamlit dashboard.
 
@@ -85,7 +85,7 @@ flowchart TD
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 Get the entire revenue recovery pipeline and real-time dashboard running in under 2 minutes:
 
@@ -118,7 +118,7 @@ streamlit run dashboard/app.py
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 razorpay-revenue-recovery/
@@ -171,7 +171,7 @@ razorpay-revenue-recovery/
 
 ---
 
-## 🛡️ Design Decisions
+## Design Decisions
 
 - **LLM used only for judgment calls** — deterministic stopping rules handle clear-cut fintech cases (bank downtime, max retries, stale sessions) before any Gemini call is made. This keeps LLM usage bounded and auditable.
 - **Every agent action logged to `audit_log` before execution** — if an action throws an exception after the log write, the agent's intent is still on record. There are no untracked financial decisions.
@@ -180,7 +180,7 @@ razorpay-revenue-recovery/
 
 ---
 
-## ⚠️ Known Limitations
+## Known Limitations
 
 > [!NOTE]
 > **`notify_then_escalate` schema tension**  
@@ -192,7 +192,7 @@ razorpay-revenue-recovery/
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 All unit and integration tests run entirely against an in-memory SQLite database, requiring zero external API keys or live PostgreSQL connections.
 
@@ -206,7 +206,7 @@ All unit and integration tests run entirely against an in-memory SQLite database
 
 ---
 
-## 🕵️ What Broke at 2 AM
+## What Broke at 2 AM
 
 A transparent engineering post-mortem detailing two production-grade gotchas solved during system construction:
 
@@ -217,7 +217,7 @@ Read the full first-person post-mortem in [**`docs/debugging_log.md`**](docs/deb
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
 | Layer | Technology | Role & Purpose |
 |---|---|---|
@@ -233,5 +233,5 @@ Read the full first-person post-mortem in [**`docs/debugging_log.md`**](docs/deb
 ---
 
 <div align="center">
-  <sub>Built for the Razorpay Buildathon • Track 03: AI Revenue Recovery</sub>
+  <sub>Built for the Razorpay Buildathon | Track 03: AI Revenue Recovery</sub>
 </div>
