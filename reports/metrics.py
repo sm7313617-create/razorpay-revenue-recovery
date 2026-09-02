@@ -319,8 +319,7 @@ def get_by_failure_code(session: Session) -> list[dict[str, Any]]:
         esc = sum(
             1
             for ref in code_refs
-            if not any(a.status == "success" for a in by_ref[ref])
-            and any(
+            if any(
                 a.action_taken == "escalate" or a.status == "escalated"
                 for a in by_ref[ref]
             )

@@ -435,7 +435,17 @@ with tab1:
     with ic2:
         st.metric("\U0001f4cf Stopping-Rule Decisions", stopping_count)
     with ic3:
-        st.metric("\U0001f6a8 Escalated Events", escalated_count)
+        st.metric(
+            "\U0001f6a8 Escalated (Unresolved)",
+            escalated_count,
+            help=(
+                "Events where the pipeline dispatched an escalate action but the payment "
+                "was not recovered (net unresolved). "
+                "See the Exception Report tab for all human hand-offs, including "
+                "bank_downtime events that were successfully handed off and count "
+                "toward the 96.5% recovery rate."
+            ),
+        )
     with ic4:
         st.metric("\u274c System Errors", agent_dec.get("error_count", 0))
 
@@ -725,6 +735,14 @@ with tab4:
     with ex3:
         st.metric("\U0001f4cb Exception Records", total_exceptions)
 
+    st.caption(
+        "These 5 events were escalated to a human via the notify_then_escalate stopping rule. "
+        "All 5 were successfully handed off (escalation dispatched, action status = success) and "
+        "count toward the 96.5% recovery rate \u2014 escalation here means human-assisted resolution, "
+        "not failure. The Overview tab's \u2018Escalated (Unresolved)\u2019 metric shows 0 because none "
+        "of these events ended without a terminal action."
+    )
+
     st.divider()
 
     if not exceptions_raw:
@@ -781,34 +799,38 @@ with tab4:
     st.markdown('<div class="section-header">Why Events Are Escalated</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="info-box">'
-        '<strong>bank_downtime &mdash; Always Escalated by Design</strong><br>'
+        '<strong>bank_downtime &mdash; Always Escalated by Design (all 5 escalations in this run)</strong><br>'
         "Bank downtime events represent a system-level infrastructure failure that is completely outside "
-        "merchant or customer control. Automated retries are ineffective during an active bank outage. "
-        "The agent immediately escalates these cases to a human operator who can coordinate with the "
-        "bank's support team, issue proactive customer communications, and retry once the outage resolves. "
+        "merchant or customer control. The agent applies the <code>notify_then_escalate</code> stopping "
+        "rule: it sends the customer a notification email and immediately hands the case off to a human "
+        "operator who can coordinate with the bank's support team. "
+        "The escalation action is recorded as <em>status=success</em> in the pipeline (the hand-off was "
+        "delivered), which is why these 5 events also appear in the 96.5% recovery rate &mdash; "
+        "successful escalation is a valid terminal outcome. "
         "This is a deliberate, policy-enforced stopping rule &mdash; not an agent failure."
         '</div>',
         unsafe_allow_html=True,
     )
     st.markdown(
         '<div class="info-box">'
-        '<strong>gateway_timeout &mdash; Retry Budget Exhausted</strong><br>'
-        "For gateway timeout failures the agent applies an exponential back-off retry strategy up to a "
-        "configurable maximum attempt ceiling. If the payment gateway remains unresponsive after all "
-        "retry attempts are consumed, the event is escalated to prevent charge duplication and ensure "
-        "the customer receives a timely resolution path. The escalated record includes the full retry "
-        "history so a human agent can make an informed next step."
+        '<strong>gateway_timeout &mdash; Retried, Not Escalated (in this run)</strong><br>'
+        "For gateway timeout failures the agent applies an exponential back-off retry strategy. "
+        "In this seed=1 run, 6 of 8 gateway_timeout events were recovered via retry. "
+        "The remaining 2 exhausted their retry budget and were left in a <em>failed</em> state "
+        "rather than escalated &mdash; the stopping rule for gateway_timeout retries ends in failure "
+        "if the gateway does not recover, not in a human escalation. "
+        "As a result, gateway_timeout contributes 0 escalated events and 2 failed events."
         '</div>',
         unsafe_allow_html=True,
     )
     st.markdown(
         '<div class="info-box">'
-        '<strong>Gemini Classification &rarr; escalate</strong><br>'
-        "When the Gemini LLM classifies an event with the <code>escalate</code> decision it has determined "
-        "that none of the automated intervention strategies (retry, notify, discount) are appropriate given "
-        "the event context and available signals. This typically occurs for unusual failure patterns, "
-        "high-value transactions exceeding risk thresholds, or cases where the AI's confidence in any "
-        "automated action is below the safe operating threshold."
+        '<strong>Stopping Rule: notify_then_escalate</strong><br>'
+        "All 5 escalated events in this run were triggered by the <code>notify_then_escalate</code> "
+        "stopping rule (not a Gemini LLM classification). When the agent detects a <code>bank_downtime</code> "
+        "failure code it bypasses the LLM entirely and directly applies this rule: notify the customer "
+        "and escalate to human review. This guarantees deterministic, latency-free handling for "
+        "infrastructure-level failures where no automated intervention is appropriate."
         '</div>',
         unsafe_allow_html=True,
     )
