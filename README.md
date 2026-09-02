@@ -1,12 +1,24 @@
-# Razorpay AI Revenue Recovery
+<div align="center">
 
-> An autonomous AI agent that detects failed payments and abandoned checkouts, then decides and executes the right recovery action — retry, notify, discount, or escalate — using a deterministic policy gate backed by Gemini.
+# 💳 Razorpay AI Revenue Recovery
 
-**Razorpay Buildathon — Track 03: AI Revenue Recovery**
+<p align="center">
+  <strong>Autonomous financial agent that detects payment failures and abandoned checkouts, executing bounded recovery actions through deterministic policy gates and Gemini intelligence.</strong>
+</p>
+
+[![Track](https://img.shields.io/badge/Razorpay_Buildathon-Track_03:_AI_Revenue_Recovery-0C2340?style=for-the-badge&logo=razorpay&logoColor=3395FF)](https://github.com/sm7313617-create/razorpay-revenue-recovery)
+[![Python](https://img.shields.io/badge/Python-3.12.4-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-StateGraph-FF6F00?style=for-the-badge&logo=chainlink&logoColor=white)](https://github.com/langchain-ai/langgraph)
+[![Gemini](https://img.shields.io/badge/Model-Gemini_3.5_Flash_Lite-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Tests](https://img.shields.io/badge/Tests-19%2F19%20Passing-2ea44f?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Recovery](https://img.shields.io/badge/Recovery%20Rate-96.5%25-success?style=for-the-badge)](reports/recovery_report.json)
 
 ---
 
-## What It Does
+</div>
+
+## 📌 What It Does
 
 When a payment fails or a customer abandons their cart, money is left on the table. This system automatically detects those events from your database, reasons about the best recovery strategy for each one, and acts — all without human intervention for routine cases. For edge cases like bank outages or repeat failures, it escalates to a human queue instead of retrying blindly.
 
@@ -14,47 +26,99 @@ A set of deterministic rules handles the clear-cut cases (too many retries, bank
 
 ---
 
-## Key Results
+## 📊 Key Results
+
+> **Benchmark context:** Evaluated on 57 production-grade synthetic events generated with deterministic seed `DEFAULT_SEED=1`.
 
 | Metric | Value |
 |---|---|
-| Events processed | 57 |
-| Recovery rate | 96.5% (55/57) |
-| Amount at risk | ₹8,84,480.75 |
-| Amount recovered | ₹1,83,559.91 |
-| Improvement over baseline | +24.6% |
-| Gemini decisions | 30 |
-| Stopping-rule decisions | 27 |
-| System errors | 0 |
+| **Events processed** | `57` |
+| **Recovery rate** | `96.5% (55/57)` |
+| **Amount at risk** | `₹8,84,480.75` |
+| **Amount recovered** | `₹1,83,559.91` |
+| **Improvement over baseline** | `+24.6%` (vs. 71.9% dumb retry baseline) |
+| **Gemini decisions** | `30` |
+| **Stopping-rule decisions** | `27` |
+| **System errors** | `0` |
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 The pipeline is a [LangGraph](https://github.com/langchain-ai/langgraph) `StateGraph` with five nodes: a deterministic policy gate runs first, then (optionally) a Gemini LLM call, then action preparation, audit logging, DB persistence, and finally execution of the chosen intervention. The system runs on PostgreSQL 18 with SQLAlchemy 2.0 and exposes a live Streamlit dashboard.
 
 See [`docs/architecture.md`](docs/architecture.md) for the full ASCII diagram, component breakdown, stopping rules table, and audit schema.
 
----
+```mermaid
+flowchart TD
+    subgraph Data ["Data Ingestion & Detection"]
+        DB[(PostgreSQL 18)] --> D1[payment_failure detector]
+        DB --> D2[checkout_abandonment detector]
+    end
 
-## Quick Start
+    subgraph Agent ["LangGraph Autonomous Agent"]
+        D1 & D2 --> N1["Node 1: check_stopping_rules<br/><i>(Deterministic Gate — 0 LLM Calls)</i>"]
+        
+        N1 -- "Rule Triggered (27 events)" --> N3["Node 3: prepare_action"]
+        N1 -- "Ambiguous (30 events)" --> N2["Node 2: decide_intervention<br/><i>(Gemini 3.5 Flash Lite)</i>"]
+        N2 --> N3
+        
+        N3 --> N4["Node 4: log_audit_entry<br/><i>(Pre-execution Immutable Audit)</i>"]
+        N4 --> N5["Node 5: write_recovery_action<br/><i>(Persist to recovery_actions)</i>"]
+        N5 --> EXE["execute_intervention Router"]
+    end
 
-```bash
-git clone https://github.com/sm7313617-create/razorpay-revenue-recovery
-cd razorpay-revenue-recovery
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-# fill in .env (see .env.example)
-python db/setup.py
-python -m data.reset_db
-python run_pipeline.py
-streamlit run dashboard/app.py
+    subgraph Interventions ["Intervention Execution"]
+        EXE --> I1["retry<br/><i>(Exponential Backoff)</i>"]
+        EXE --> I2["notify<br/><i>(Customer Messaging)</i>"]
+        EXE --> I3["discount<br/><i>(Dynamic Incentive)</i>"]
+        EXE --> I4["escalate<br/><i>(Human Handoff)</i>"]
+    end
+
+    EXE -.-> UI["Live Streamlit Dashboard & Reports"]
+
+    style N1 fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#fff
+    style N2 fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff
+    style N4 fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#fff
+    style DB fill:#0f172a,stroke:#64748b,stroke-width:1px,color:#fff
 ```
 
 ---
 
-## Project Structure
+## 🚀 Quick Start
+
+Get the entire revenue recovery pipeline and real-time dashboard running in under 2 minutes:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/sm7313617-create/razorpay-revenue-recovery
+cd razorpay-revenue-recovery
+
+# 2. Set up virtual environment and install dependencies
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+
+# 3. Configure environment variables (see .env.example)
+# Fill in GOOGLE_API_KEY, DB_URL, RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
+
+# 4. Initialize PostgreSQL schema and seed deterministic data
+python db/setup.py
+python -m data.reset_db
+
+# 5. Execute recovery agent pipeline on all 57 events
+python run_pipeline.py
+
+# 6. Launch the interactive live Streamlit dashboard
+streamlit run dashboard/app.py
+```
+
+> [!TIP]
+> **Using the Makefile**: On systems with `make` (or using `nmake` on Windows), run `make run` to execute the pipeline or `make dash` to launch the dashboard. Run `make help` to see all targets.
+
+---
+
+## 📁 Project Structure
 
 ```
 razorpay-revenue-recovery/
@@ -107,7 +171,7 @@ razorpay-revenue-recovery/
 
 ---
 
-## Design Decisions
+## 🛡️ Design Decisions
 
 - **LLM used only for judgment calls** — deterministic stopping rules handle clear-cut fintech cases (bank downtime, max retries, stale sessions) before any Gemini call is made. This keeps LLM usage bounded and auditable.
 - **Every agent action logged to `audit_log` before execution** — if an action throws an exception after the log write, the agent's intent is still on record. There are no untracked financial decisions.
@@ -116,43 +180,58 @@ razorpay-revenue-recovery/
 
 ---
 
-## Known Limitations
+## ⚠️ Known Limitations
 
-- **`notify_then_escalate` schema tension**: For bank-downtime events, `recovery_actions` records `action_taken='escalate'` and `status='success'`. The `success` here means "successfully dispatched to the human queue" — not "payment recovered." This is a documented design tension: `status` conflates execution outcome with financial outcome. A production system would split these into separate columns.
+> [!NOTE]
+> **`notify_then_escalate` schema tension**  
+> For bank-downtime events, `recovery_actions` records `action_taken='escalate'` and `status='success'`. The `success` here means "successfully dispatched to the human queue" — not "payment recovered." This is a documented design tension: `status` conflates execution outcome with financial outcome. A production system would split these into separate columns.
 
-- **Checkout seed data goes stale**: The abandonment detector checks whether a session was abandoned more than 120 minutes ago. Because the seed data uses fixed timestamps, repeated pipeline runs will push more and more checkout sessions past the 120-minute threshold, routing them to the `notify_only` stopping rule instead of Gemini. To restore the original distribution, run `python -m data.reset_db`.
+> [!NOTE]
+> **Checkout seed data goes stale**  
+> The abandonment detector checks whether a session was abandoned more than 120 minutes ago. Because the seed data uses fixed timestamps, repeated pipeline runs will push more and more checkout sessions past the 120-minute threshold, routing them to the `notify_only` stopping rule instead of Gemini. To restore the original distribution, run `python -m data.reset_db`.
 
 ---
 
-## Running Tests
+## 🧪 Running Tests
+
+All unit and integration tests run entirely against an in-memory SQLite database, requiring zero external API keys or live PostgreSQL connections.
 
 ```bash
 .\venv\Scripts\pytest.exe tests/ -v
 ```
 
-Tests use SQLite in-memory databases — no real PostgreSQL connection or Gemini API calls required. 19/19 tests pass on a clean checkout.
+```
+============================== 19 passed in 1.42s ==============================
+```
 
 ---
 
-## What Broke at 2 AM
+## 🕵️ What Broke at 2 AM
 
-**Bug 1 — The Silent Escalation**: The `langchain-google-genai` response object returns `.content` as a list of part-dicts, not a plain string. Calling `.strip()` on a list raised a `TypeError` that was swallowed by a broad `except Exception` block, silently falling back to `"escalate"` for every single event. The LLM path had never actually run. Found by printing `response.content` raw instead of trusting the pipeline summary.
+A transparent engineering post-mortem detailing two production-grade gotchas solved during system construction:
 
-**Bug 2 — The Invisible Escalations**: The metrics aggregation used `status='success'` to infer non-escalation, but `recovery_actions` stores escalations with `action_taken='escalate', status='success'` (success = dispatched, not recovered). All 5 bank-downtime escalations were invisible to the Recovery Analysis tab. Found via direct SQL on the DB; fixed by checking `action_taken == 'escalate'` directly.
+* **Bug 1 — The Silent Escalation**: The `langchain-google-genai` response object returns `.content` as a list of part-dicts, not a plain string. Calling `.strip()` on a list raised a `TypeError` that was swallowed by a broad `except Exception` block, silently falling back to `"escalate"` for every single event. The LLM path had never actually run. Found by printing `response.content` raw instead of trusting the pipeline summary.
+* **Bug 2 — The Invisible Escalations**: The metrics aggregation used `status='success'` to infer non-escalation, but `recovery_actions` stores escalations with `action_taken='escalate', status='success'` (success = dispatched, not recovered). All 5 bank-downtime escalations were invisible to the Recovery Analysis tab. Found via direct SQL on the DB; fixed by checking `action_taken == 'escalate'` directly.
 
-Full post-mortem in [`docs/debugging_log.md`](docs/debugging_log.md).
+Read the full first-person post-mortem in [**`docs/debugging_log.md`**](docs/debugging_log.md).
 
 ---
 
-## Tech Stack
+## 🧰 Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Language | Python 3.12.4 |
-| Database | PostgreSQL 18 |
-| ORM | SQLAlchemy 2.0 |
-| Agent Framework | LangGraph |
-| LLM | Gemini (`gemini-3.5-flash-lite`) via `langchain-google-genai` |
-| Dashboard | Streamlit |
-| Payment SDK | Razorpay Test SDK |
-| Testing | pytest |
+| Layer | Technology | Role & Purpose |
+|---|---|---|
+| **Language** | **Python 3.12.4** | Modern type-hinted core runtime |
+| **Database** | **PostgreSQL 18** | Relational store with ACID guarantees |
+| **ORM** | **SQLAlchemy 2.0** | Type-safe declarative model mappings |
+| **Agent Framework** | **LangGraph** | Cyclic state-graph execution & policy control |
+| **LLM Engine** | **Gemini (`gemini-3.5-flash-lite`)** | High-throughput contextual reasoning via `langchain-google-genai` |
+| **Dashboard** | **Streamlit** | Live operational observability UI & reporting |
+| **Payment SDK** | **Razorpay Test SDK** | Payment attempt verification and integration |
+| **Testing** | **pytest** | Deterministic unit & mock integration test suite |
+
+---
+
+<div align="center">
+  <sub>Built for the Razorpay Buildathon • Track 03: AI Revenue Recovery</sub>
+</div>
