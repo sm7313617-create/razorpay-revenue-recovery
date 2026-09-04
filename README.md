@@ -26,6 +26,8 @@ When a payment fails or a customer abandons their cart, money is left on the tab
 
 A set of deterministic rules handles the clear-cut cases (too many retries, bank is down, session is stale). Only when those rules don't apply does the system call Gemini to make a judgment call — which keeps the LLM focused on genuinely ambiguous situations rather than burning tokens on obvious ones. Every decision is logged to an audit trail before anything executes, so there's always a record of what the agent decided and why.
 
+A major practical hurdle is data availability: real-world recovery requires clean, structured telemetry, but production payment failures are typically scattered across gateway logs, raw bank response codes, merchant portals, and asynchronous webhook queues — rarely labeled and never in a single queryable place. Salvage addresses this through a deterministic synthetic data layer (`DEFAULT_SEED=1`, reproducible UUID generation, and realistic INR ticket distributions across four failure codes) that models production conditions while keeping every evaluation run strictly auditable and reproducible. Seed 1 was chosen deliberately after benchmarking three candidate seeds, specifically selecting the distribution with a realistic failure mix and genuine escalations over an artificially flattering 100% recovery baseline.
+
 ---
 
 ## Key Results
