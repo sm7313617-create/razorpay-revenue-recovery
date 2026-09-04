@@ -1,7 +1,7 @@
 """
 run_pipeline.py
 ----------------------------------------------------------------
-Production pipeline entry point for the Razorpay AI Revenue Recovery agent.
+Production pipeline entry point for Salvage.
 
 Runs the full recovery pipeline in a single pass:
   1. Detect all unprocessed payment failures
@@ -72,7 +72,7 @@ def main() -> None:
     sep = "=" * 65
 
     print(f"\n{sep}")
-    print("  RAZORPAY AI REVENUE RECOVERY -- Full Pipeline Run")
+    print("  SALVAGE -- Full Pipeline Run")
     print(f"  Started : {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print(sep)
 

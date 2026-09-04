@@ -1,6 +1,8 @@
 <div align="center">
 
-# Razorpay AI Revenue Recovery
+# Salvage
+
+### Salvage — AI-powered revenue recovery for modern merchants
 
 <p align="center">
   <strong>Autonomous financial agent that detects payment failures and abandoned checkouts, executing bounded recovery actions through deterministic policy gates and Gemini intelligence.</strong>

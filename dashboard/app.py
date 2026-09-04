@@ -1,7 +1,7 @@
 """
 dashboard/app.py
 ----------------------------------------------------------------
-Streamlit visual dashboard for the Razorpay AI Revenue Recovery Agent.
+Streamlit visual dashboard for Salvage.
 Razorpay Buildathon -- Track 03: AI Revenue Recovery
 
 Launch command:
@@ -39,7 +39,7 @@ from reports.metrics import generate_baseline_comparison, generate_full_report  
 # Page config -- must be first Streamlit call
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Revenue Recovery Agent",
+    page_title="Salvage",
     layout="wide",
     page_icon="\U0001f4b3",
 )
@@ -271,8 +271,8 @@ def _fmt_inr(amount: float) -> str:
 st.markdown(
     """
     <div class="hero-title">
-        <h1>\U0001f4b3 AI Revenue Recovery Agent</h1>
-        <p>Razorpay Buildathon &mdash; Track 03 &nbsp;|&nbsp; Powered by Gemini</p>
+        <h1>\U0001f4b3 Salvage</h1>
+        <p>Salvage &mdash; AI-powered revenue recovery for modern merchants</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -837,7 +837,7 @@ with tab4:
 
     st.markdown(
         "<p style='text-align:center;color:#334155;font-size:0.78rem;margin-top:2rem;'>"
-        "Razorpay AI Revenue Recovery Agent \u00b7 Buildathon Track 03 \u00b7 "
+        "Salvage \u00b7 Buildathon Track 03 \u00b7 "
         "All metrics live from PostgreSQL \u00b7 Auto-refresh every 5 min"
         "</p>",
         unsafe_allow_html=True,
